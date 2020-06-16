@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 from glob import glob
-import seaborn
 import numpy, scipy, matplotlib.pyplot as plt
 import librosa, librosa.display 
+import seaborn
 from tqdm import tqdm
 
 import utils
