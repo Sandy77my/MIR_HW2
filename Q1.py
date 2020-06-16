@@ -8,7 +8,6 @@ from tqdm import tqdm
 
 import utils
 
-# Compute local onset autocorrelation
 DB = 'Ballroom'
 GENRE = [g.split('/')[2] for g in glob(DB + '/wav/*')]
 print(GENRE)
@@ -36,10 +35,6 @@ for g in tqdm(GENRE):
         onset_env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=hop_length, n_fft=2048)
         # tempogram = librosa.feature.tempogram(onset_envelope=onset_env, sr=sr, hop_length=hop_length)
         tempogram = librosa.feature.tempogram(onset_envelope=onset_env, sr=sr, hop_length=hop_length)
-
-        # # Short_time Fourier Transform 
-        # S = librosa.stft(onset_env, hop_length=1, n_fft=512)
-        # tempogram_fourier = numpy.absolute(S)
 
         # predict the tempo1(slower one), tempo2(faster one)
         # tempo1, tempo2 = librosa.beat.tempo(onset_envelope=onset_env, sr=sr, hop_length=hop_length)

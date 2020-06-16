@@ -8,40 +8,38 @@ from tqdm import tqdm
 
 import utils
 
-# Compute local onset autocorrelation
 DB = 'Ballroom'
 GENRE = [g.split('/')[2] for g in glob(DB + '/wav/*')]
 
 # %% Q2
-genres_p, genres_ALOTC = list(), list()
+genres_P_score, genres_ALOTC_score = list(), list()
 
 for g in tqdm(GENRE):
-    # print('GENRE:', g)
+    # print(GENRE)
     FILES = glob(DB + '/wav/' + g + '/*.wav')
-    label, pred_t1, pred_t2, p_score, ALOTC_score = list(), list(), list(), list(), list()
+    label, pred_t1, pred_t2, P_score, ALOTC_score = list(), list(), list(), list(), list()
 
     for f in FILES:
         f = f.replace('\\', '/')
         # print('FILE:', f)
 
-        # Read the labeled tempo
+        # Read the labeled tempo(ground-truth tempo)
         bpm = float(utils.read_tempofile(DB, f))
-        # print('ground-truth tempo: ', bpm)
+        # print(bpm)
         label.append(bpm)
-
-        # Estimate a static tempo
+        
+        # Compute local onset autocorrelation
         sr, y = utils.read_wav(f)
-
         hop_length = 512
-        onset_env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=hop_length)
-
+        onset_env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=hop_length, n_fft=2048)
+        # tempogram = librosa.feature.tempogram(onset_envelope=onset_env, sr=sr, hop_length=hop_length)
         tempogram = librosa.feature.tempogram(onset_envelope=onset_env, sr=sr, hop_length=hop_length)
 
         # predict the tempo1(slower one), tempo2(faster one)
         # tempo1, tempo2 = librosa.beat.tempo(onset_envelope=onset_env, sr=sr, hop_length=hop_length)
         tempo1, tempo2 = utils.tempo(onset_envelope=onset_env, sr=sr, hop_length=hop_length)
-        tempo1 = tempo1 * 3
-        tempo2 = tempo2 * 3
+        tempo1 = tempo1 * 2
+        tempo2 = tempo2 * 2
         pred_t1.append(tempo1)
         pred_t2.append(tempo2)
         # print(tempo1, tempo2)
@@ -51,7 +49,7 @@ for g in tqdm(GENRE):
         s2 = 1.0 - s1
         # print(s1, s2)
         p = s1 * utils.P_score(tempo1, bpm) + s2 * utils.P_score(tempo2, bpm)
-        p_score.append(p)
+        P_score.append(p)
 
         # ALOTC score
         ALOTC = utils.ALOTC(tempo1, tempo2, bpm)
@@ -59,24 +57,24 @@ for g in tqdm(GENRE):
 
         # print(p, ALOTC)
 
-    p_avg = sum(p_score)/len(p_score)
+    p_avg = sum(P_score)/len(P_score)
     ALOTC_avg = sum(ALOTC_score)/len(ALOTC_score)
-    genres_p.append(p_avg)
-    genres_ALOTC.append(ALOTC_avg)
+    genres_P_score.append(p_avg)
+    genres_ALOTC_score.append(ALOTC_avg)
 
     print('----------')
 
-print(genres_p)
-print(genres_ALOTC)
+print(genres_P_score)
+print(genres_ALOTC_score)
 print()
 
 print("***** Q2 *****")
 print("Genre          \tP-score    \tALOTC score")
 for g in range(len(GENRE)):
-    print("{:13s}\t{:8.2f}\t{:8.2f}".format(GENRE[g], genres_p[g], genres_ALOTC[g]))
+    print("{:13s}\t{:8.2%}\t{:8.2%}".format(GENRE[g], genres_P_score[g], genres_ALOTC_score[g]))
 print('----------')
-print("Overall P-score:\t{:.2f}".format(sum(genres_p)/len(genres_p)))
-print("Overall ALOTC score:\t{:.2f}".format(sum(genres_ALOTC)/len(genres_ALOTC)))
+print("Overall P-score:\t{:.2%}".format(sum(genres_P_score)/len(genres_P_score)))
+print("Overall ALOTC score:\t{:.2%}".format(sum(genres_ALOTC_score)/len(genres_ALOTC_score)))
 
 # Plot the onset envelope
 frames = range(len(onset_env))

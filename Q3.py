@@ -5,20 +5,20 @@ import seaborn
 import numpy, scipy, matplotlib.pyplot as plt
 import librosa, librosa.display 
 from tqdm import tqdm
+import madmom
 
 import utils
 
-# Compute local onset autocorrelation
 DB = 'Ballroom'
 GENRE = [g.split('/')[2] for g in glob(DB + '/wav/*')]
 
 # %% Q3
-genres_p, genres_ALOTC = list(), list()
+genres_P_score, genres_ALOTC_score = list(), list()
 
 for g in tqdm(GENRE):
-    # print('GENRE:', g)
+    # print(GENRE)
     FILES = glob(DB + '/wav/' + g + '/*.wav')
-    label, pred_t1, pred_t2, p_score, ALOTC_score = list(), list(), list(), list(), list()
+    label, pred_t1, pred_t2, P_score, ALOTC_score = list(), list(), list(), list(), list()
 
     for f in FILES:
         f = f.replace('\\', '/')
@@ -26,7 +26,7 @@ for g in tqdm(GENRE):
 
         # Read the labeled tempo
         bpm = float(utils.read_tempofile(DB, f))
-        # print('ground-truth tempo: ', bpm)
+        # print(bpm)
         label.append(bpm)
 
         # madmom estimate tempo
@@ -41,7 +41,7 @@ for g in tqdm(GENRE):
         s2 = 1.0 - s1
         # print(s1, s2)
         p = s1 * utils.P_score(tempo1, bpm) + s2 * utils.P_score(tempo2, bpm)
-        p_score.append(p)
+        P_score.append(p)
 
         # ALOTC score
         ALOTC = utils.ALOTC(tempo1, tempo2, bpm)
@@ -49,21 +49,39 @@ for g in tqdm(GENRE):
 
         # print(p, ALOTC)
 
-    p_avg = sum(p_score) / len(p_score)
+    p_avg = sum(P_score) / len(P_score)
     ALOTC_avg = sum(ALOTC_score) / len(ALOTC_score)
-    genres_p.append(p_avg)
-    genres_ALOTC.append(ALOTC_avg)
+    genres_P_score.append(p_avg)
+    genres_ALOTC_score.append(ALOTC_avg)
 
     print('----------')
 
-print(genres_p)
-print(genres_ALOTC)
+print(genres_P_score)
+print(genres_ALOTC_score)
 print()
 
 print("***** Q3 *****")
 print("Genre          \tP-score    \tALOTC score")
 for g in range(len(GENRE)):
-    print("{:13s}\t{:8.2f}\t{:8.2f}".format(GENRE[g], genres_p[g], genres_ALOTC[g]))
+    print("{:13s}\t{:8.2%}\t{:8.2%}".format(GENRE[g], genres_P_score[g], genres_ALOTC_score[g]))
 print('----------')
-print("Overall P-score:\t{:.2f}".format(sum(genres_p) / len(genres_p)))
-print("Overall ALOTC score:\t{:.2f}".format(sum(genres_ALOTC) / len(genres_ALOTC)))
+print("Overall P-score:\t{:.2%}".format(sum(genres_P_score) / len(genres_P_score)))
+print("Overall ALOTC score:\t{:.2%}".format(sum(genres_ALOTC_score) / len(genres_ALOTC_score)))
+
+# # Plot the onset envelope
+# frames = range(len(onset_env))
+# t = librosa.frames_to_time(frames, sr=sr, hop_length=hop_length)
+
+# plt.plot(t, onset_env)
+# plt.xlim(0, t.max())
+# plt.ylim(0)
+# plt.xlabel('Time (sec)')
+# plt.title('Novelty Function')
+# plt.show()
+
+# # Plot the tempogram
+# librosa.display.specshow(tempogram, sr=sr, hop_length=hop_length, x_axis='time', y_axis='tempo')
+# plt.colorbar()
+# plt.title('Tempogram')
+# plt.tight_layout()
+# plt.show()

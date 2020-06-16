@@ -29,17 +29,17 @@ def read_beatfile(DB, f):
         reference_beats, _ = mir_eval.io.load_labeled_events(beat_file)
         reference_beats = mir_eval.beat.trim_beats(reference_beats)
     elif DB == 'SMC':
-        dirPath = r"SMC/SMC_MIREX_Annotations"
+        dirPath = r"SMC/SMC_MIREX/SMC_MIREX_Annotations"
         result = [f for f in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, f))]
         for i in range(len(result)):
-            if f.split('SMC/SMC_MIREX_Audio/')[1].split('.wav')[0] in result[i]:
+            if f.split('SMC/SMC_MIREX/SMC_MIREX_Audio/')[1].split('.wav')[0] in result[i]:
                 reference_beats = mir_eval.io.load_events(dirPath + '/' + result[i])
                 break
     elif DB == 'JCS':
         dirPath = r"JCS/annotations"
         result = [f for f in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, f))]
         for i in range(len(result)):
-            if f.split('JCS/JCS_audio/')[1].split('.wav')[0] in result[i]:
+            if f.split('JCS/audio/')[1].split('.wav')[0] in result[i]:
                 reference_beats, _ = mir_eval.io.load_labeled_events(dirPath + '/' + result[i])
                 reference_beats = mir_eval.beat.trim_beats(reference_beats)
                 break
@@ -50,7 +50,7 @@ def read_meterfile(DB, f, g_beats_len):
         dirPath = r"JCS/annotations"
         result = [f for f in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, f))]
         for i in range(len(result)):
-            if f.split('JCS/JCS_audio/')[1].split('.wav')[0] in result[i]:
+            if f.split('JCS/audio/')[1].split('.wav')[0] in result[i]:
                 _, meters = mir_eval.io.load_labeled_events(dirPath + '/' + result[i])
                 break
         # fit the length of "mir_eval.beat.trim_beats"
@@ -60,11 +60,12 @@ def read_meterfile(DB, f, g_beats_len):
         print('No use on this dataset.')
 
 def read_downbeatfile(DB, f):
+    global event_times, labels
     if DB == 'JCS':
         dirPath = r"JCS/annotations"
         result = [f for f in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, f))]
         for i in range(len(result)):
-            if f.split('JCS/JCS_audio/')[1].split('.wav')[0] in result[i]:
+            if f.split('JCS/audio/')[1].split('.wav')[0] in result[i]:
                 event_times, labels = mir_eval.io.load_labeled_events(dirPath + '/' + result[i])
     elif DB == 'Ballroom':
         genre = f.split('/')[2]
